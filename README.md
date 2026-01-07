@@ -2,7 +2,7 @@
 
 A Claude Code slash command that enables AI to efficiently "skim" large documents using stratified sampling - reading only 20-30% while covering the full document length.
 
-Based on the methodology from [this Medium article](https://medium.com/@jan.kammerath/how-to-make-ai-skim-through-large-documents-b9f9f0d6a7e1) by Jan Kammerath.
+Based on the methodology from [this Medium article](https://medium.com/@airabbitX/i-taught-ai-to-skim-1000-page-documents-like-a-human-bce9fcc9f5c6) by airabbitX.
 
 ## What It Does
 
@@ -179,5 +179,5 @@ This is free and unencumbered software released into the public domain. See [UNL
 
 ## Credits
 
-- Methodology based on [Jan Kammerath's article](https://medium.com/@jan.kammerath/how-to-make-ai-skim-through-large-documents-b9f9f0d6a7e1)
+- Methodology based on [airabbitX's article](https://medium.com/@airabbitX/i-taught-ai-to-skim-1000-page-documents-like-a-human-bce9fcc9f5c6)
 - Built for [Claude Code](https://claude.ai/code)
