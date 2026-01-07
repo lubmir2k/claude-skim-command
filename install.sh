@@ -47,11 +47,22 @@ else
     echo "Downloading files..."
     REPO_URL="https://raw.githubusercontent.com/lubmir2k/claude-skim-command/main"
 
-    curl -fsSL "$REPO_URL/skim.md" -o "$SCRIPT_DIR/skim.md"
+    mkdir -p "$SCRIPT_DIR/commands"
+    curl -fsSL "$REPO_URL/commands/skim.md" -o "$SCRIPT_DIR/commands/skim.md"
     mkdir -p "$SCRIPT_DIR/scripts"
     curl -fsSL "$REPO_URL/scripts/pdf_extract.py" -o "$SCRIPT_DIR/scripts/pdf_extract.py"
     curl -fsSL "$REPO_URL/scripts/url_fetch.py" -o "$SCRIPT_DIR/scripts/url_fetch.py"
     curl -fsSL "$REPO_URL/scripts/doc_structure.py" -o "$SCRIPT_DIR/scripts/doc_structure.py"
+fi
+
+# Determine source file location (handles both old and new directory structures)
+if [ -f "$SCRIPT_DIR/commands/skim.md" ]; then
+    SKIM_MD_SOURCE="$SCRIPT_DIR/commands/skim.md"
+elif [ -f "$SCRIPT_DIR/skim.md" ]; then
+    SKIM_MD_SOURCE="$SCRIPT_DIR/skim.md"
+else
+    echo -e "${RED}Error: Could not find skim.md${NC}"
+    exit 1
 fi
 
 # Target directories
@@ -65,7 +76,7 @@ mkdir -p "$SCRIPTS_DIR"
 
 # Copy files
 echo "Copying files..."
-cp "$SCRIPT_DIR/skim.md" "$COMMANDS_DIR/"
+cp "$SKIM_MD_SOURCE" "$COMMANDS_DIR/skim.md"
 cp "$SCRIPT_DIR/scripts/pdf_extract.py" "$SCRIPTS_DIR/"
 cp "$SCRIPT_DIR/scripts/url_fetch.py" "$SCRIPTS_DIR/"
 cp "$SCRIPT_DIR/scripts/doc_structure.py" "$SCRIPTS_DIR/"

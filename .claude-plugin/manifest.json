@@ -1,0 +1,16 @@
+{
+  "name": "skim",
+  "version": "1.0.0",
+  "description": "Efficiently skim large documents (PDFs, text, URLs) using stratified sampling - read 20-30% strategically to extract key insights",
+  "author": "lubmir2k",
+  "license": "Unlicense",
+  "repository": "https://github.com/lubmir2k/claude-skim-command",
+  "commands": [
+    "commands/skim.md"
+  ],
+  "scripts": [
+    "scripts/pdf_extract.py",
+    "scripts/url_fetch.py",
+    "scripts/doc_structure.py"
+  ]
+}
