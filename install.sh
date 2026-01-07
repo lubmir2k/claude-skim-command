@@ -15,6 +15,18 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Initialize variables
+TEMP_INSTALL=false
+SCRIPT_DIR=""
+
+# Ensure cleanup of temporary files on exit
+cleanup() {
+    if [ "$TEMP_INSTALL" = true ] && [ -n "$SCRIPT_DIR" ] && [ -d "$SCRIPT_DIR" ]; then
+        rm -rf "$SCRIPT_DIR"
+    fi
+}
+trap cleanup EXIT
+
 echo -e "${GREEN}Installing Claude Code /skim command...${NC}"
 
 # Determine script directory (works for both local and piped execution)
@@ -54,11 +66,6 @@ cp "$SCRIPT_DIR/scripts/doc_structure.py" "$SCRIPTS_DIR/"
 # Make scripts executable
 echo "Setting permissions..."
 chmod +x "$SCRIPTS_DIR"/*.py
-
-# Clean up temp directory if used
-if [ "$TEMP_INSTALL" = true ]; then
-    rm -rf "$SCRIPT_DIR"
-fi
 
 # Verify installation
 echo ""

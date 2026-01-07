@@ -28,8 +28,8 @@ def analyze_text_structure(filepath: str, format_hint: str = 'auto') -> dict:
     try:
         with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
             content = f.read()
-    except Exception as e:
-        return {'error': str(e)}
+    except (FileNotFoundError, IOError, UnicodeDecodeError) as e:
+        return {'error': f'Error reading file: {e}'}
 
     lines = content.split('\n')
     total_lines = len(lines)
@@ -154,19 +154,16 @@ def analyze_pdf_structure(filepath: str) -> dict:
     # Try PyMuPDF
     try:
         import fitz
-        doc = fitz.open(filepath)
+        with fitz.open(filepath) as doc:
+            total_pages = len(doc)
 
-        total_pages = len(doc)
+            # Get TOC if available
+            toc = doc.get_toc()
 
-        # Get TOC if available
-        toc = doc.get_toc()
-
-        # Extract text from first few pages to detect structure
-        sample_text = ""
-        for i in range(min(5, total_pages)):
-            sample_text += doc[i].get_text()
-
-        doc.close()
+            # Extract text from first few pages to detect structure
+            sample_text = ""
+            for i in range(min(5, total_pages)):
+                sample_text += doc[i].get_text()
 
         # Calculate sampling points
         chunk_size = total_pages // 6
@@ -196,10 +193,8 @@ def analyze_pdf_structure(filepath: str) -> dict:
     # Try pdfplumber
     try:
         import pdfplumber
-        pdf = pdfplumber.open(filepath)
-
-        total_pages = len(pdf.pages)
-        pdf.close()
+        with pdfplumber.open(filepath) as pdf:
+            total_pages = len(pdf.pages)
 
         chunk_size = total_pages // 6
         sampling_points = {

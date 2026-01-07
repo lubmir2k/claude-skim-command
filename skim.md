@@ -101,7 +101,7 @@ grep -n "^#\|^Chapter\|^Section\|^[0-9]\+\." document.txt | head -50
 python ~/.claude/commands/skim-scripts/doc_structure.py document.txt
 ```
 
-### Step 4: Divide Into 6-8 Chunks
+### Step 4: Divide Into 6 Chunks
 
 For a document with N lines/pages:
 - Chunk 1: Lines 1 to N/6

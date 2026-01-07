@@ -27,12 +27,17 @@ def parse_page_ranges(ranges_str: str) -> list[tuple[int, int]]:
     ranges = []
     for part in ranges_str.split(','):
         part = part.strip()
-        if '-' in part:
-            start, end = part.split('-', 1)
-            ranges.append((int(start), int(end)))
-        else:
-            page = int(part)
-            ranges.append((page, page))
+        if not part:
+            continue
+        try:
+            if '-' in part:
+                start, end = part.split('-', 1)
+                ranges.append((int(start), int(end)))
+            else:
+                page = int(part)
+                ranges.append((page, page))
+        except ValueError:
+            print(f"Warning: Ignoring invalid page range '{part}'", file=sys.stderr)
     return ranges
 
 
@@ -45,80 +50,76 @@ def extract_with_pymupdf(pdf_path: str, page_ranges: list[tuple[int, int]] | Non
         return "ERROR: PyMuPDF not installed. Run: pip install pymupdf"
 
     try:
-        doc = fitz.open(pdf_path)
+        with fitz.open(pdf_path) as doc:
+            total_pages = len(doc)
+
+            if show_info:
+                metadata = doc.metadata
+                output = [
+                    f"PDF Info: {pdf_path}",
+                    f"  Total pages: {total_pages}",
+                    f"  Title: {metadata.get('title', 'N/A')}",
+                    f"  Author: {metadata.get('author', 'N/A')}",
+                    f"  Subject: {metadata.get('subject', 'N/A')}",
+                    f"  Creator: {metadata.get('creator', 'N/A')}",
+                    "",
+                    "Suggested sampling strategy:",
+                    f"  Beginning (10%): pages 1-{max(1, total_pages // 10)}",
+                    f"  25% mark: pages {total_pages // 4}-{total_pages // 4 + 5}",
+                    f"  50% mark: pages {total_pages // 2}-{total_pages // 2 + 5}",
+                    f"  75% mark: pages {3 * total_pages // 4}-{3 * total_pages // 4 + 5}",
+                    f"  End (10%): pages {total_pages - total_pages // 10}-{total_pages}",
+                ]
+                return "\n".join(output)
+
+            # Determine which pages to extract
+            if page_ranges:
+                pages_to_read = set()
+                for start, end in page_ranges:
+                    for p in range(max(1, start), min(total_pages, end) + 1):
+                        pages_to_read.add(p)
+                pages_to_read = sorted(pages_to_read)
+            else:
+                # Default: first 10 pages
+                pages_to_read = list(range(1, min(11, total_pages + 1)))
+
+            output_lines = []
+            char_count = 0
+
+            for page_num in pages_to_read:
+                if char_count >= max_chars:
+                    output_lines.append(f"\n[OUTPUT LIMIT REACHED at {max_chars} chars]")
+                    break
+
+                page = doc[page_num - 1]  # 0-indexed
+                text = page.get_text()
+
+                output_lines.append(f"\n{'='*60}")
+                output_lines.append(f"PAGE {page_num} of {total_pages}")
+                output_lines.append('='*60)
+
+                remaining_chars = max_chars - char_count
+                if len(text) > remaining_chars:
+                    text = text[:remaining_chars] + "\n[TRUNCATED]"
+
+                output_lines.append(text)
+                char_count += len(text) + 100  # Account for headers
+
+            # Add coverage summary
+            coverage = len(pages_to_read) / total_pages * 100
+            summary = [
+                f"\n{'='*60}",
+                "EXTRACTION SUMMARY",
+                '='*60,
+                f"Pages extracted: {pages_to_read}",
+                f"Coverage: {coverage:.1f}% ({len(pages_to_read)} of {total_pages} pages)",
+                f"Characters output: ~{char_count}",
+            ]
+            output_lines.extend(summary)
+
+            return "\n".join(output_lines)
     except Exception as e:
         return f"ERROR: Could not open PDF: {e}"
-
-    total_pages = len(doc)
-
-    if show_info:
-        metadata = doc.metadata
-        output = [
-            f"PDF Info: {pdf_path}",
-            f"  Total pages: {total_pages}",
-            f"  Title: {metadata.get('title', 'N/A')}",
-            f"  Author: {metadata.get('author', 'N/A')}",
-            f"  Subject: {metadata.get('subject', 'N/A')}",
-            f"  Creator: {metadata.get('creator', 'N/A')}",
-            "",
-            "Suggested sampling strategy:",
-            f"  Beginning (10%): pages 1-{max(1, total_pages // 10)}",
-            f"  25% mark: pages {total_pages // 4}-{total_pages // 4 + 5}",
-            f"  50% mark: pages {total_pages // 2}-{total_pages // 2 + 5}",
-            f"  75% mark: pages {3 * total_pages // 4}-{3 * total_pages // 4 + 5}",
-            f"  End (10%): pages {total_pages - total_pages // 10}-{total_pages}",
-        ]
-        doc.close()
-        return "\n".join(output)
-
-    # Determine which pages to extract
-    if page_ranges:
-        pages_to_read = set()
-        for start, end in page_ranges:
-            for p in range(max(1, start), min(total_pages, end) + 1):
-                pages_to_read.add(p)
-        pages_to_read = sorted(pages_to_read)
-    else:
-        # Default: first 10 pages
-        pages_to_read = list(range(1, min(11, total_pages + 1)))
-
-    output_lines = []
-    char_count = 0
-
-    for page_num in pages_to_read:
-        if char_count >= max_chars:
-            output_lines.append(f"\n[OUTPUT LIMIT REACHED at {max_chars} chars]")
-            break
-
-        page = doc[page_num - 1]  # 0-indexed
-        text = page.get_text()
-
-        output_lines.append(f"\n{'='*60}")
-        output_lines.append(f"PAGE {page_num} of {total_pages}")
-        output_lines.append('='*60)
-
-        remaining_chars = max_chars - char_count
-        if len(text) > remaining_chars:
-            text = text[:remaining_chars] + "\n[TRUNCATED]"
-
-        output_lines.append(text)
-        char_count += len(text) + 100  # Account for headers
-
-    doc.close()
-
-    # Add coverage summary
-    coverage = len(pages_to_read) / total_pages * 100
-    summary = [
-        f"\n{'='*60}",
-        "EXTRACTION SUMMARY",
-        '='*60,
-        f"Pages extracted: {pages_to_read}",
-        f"Coverage: {coverage:.1f}% ({len(pages_to_read)} of {total_pages} pages)",
-        f"Characters output: ~{char_count}",
-    ]
-    output_lines.extend(summary)
-
-    return "\n".join(output_lines)
 
 
 def extract_with_pdfplumber(pdf_path: str, page_ranges: list[tuple[int, int]] | None,
@@ -130,73 +131,69 @@ def extract_with_pdfplumber(pdf_path: str, page_ranges: list[tuple[int, int]] | 
         return "ERROR: pdfplumber not installed. Run: pip install pdfplumber"
 
     try:
-        pdf = pdfplumber.open(pdf_path)
+        with pdfplumber.open(pdf_path) as pdf:
+            total_pages = len(pdf.pages)
+
+            if show_info:
+                output = [
+                    f"PDF Info: {pdf_path}",
+                    f"  Total pages: {total_pages}",
+                    "",
+                    "Suggested sampling strategy:",
+                    f"  Beginning (10%): pages 1-{max(1, total_pages // 10)}",
+                    f"  25% mark: pages {total_pages // 4}-{total_pages // 4 + 5}",
+                    f"  50% mark: pages {total_pages // 2}-{total_pages // 2 + 5}",
+                    f"  75% mark: pages {3 * total_pages // 4}-{3 * total_pages // 4 + 5}",
+                    f"  End (10%): pages {total_pages - total_pages // 10}-{total_pages}",
+                ]
+                return "\n".join(output)
+
+            # Determine which pages to extract
+            if page_ranges:
+                pages_to_read = set()
+                for start, end in page_ranges:
+                    for p in range(max(1, start), min(total_pages, end) + 1):
+                        pages_to_read.add(p)
+                pages_to_read = sorted(pages_to_read)
+            else:
+                pages_to_read = list(range(1, min(11, total_pages + 1)))
+
+            output_lines = []
+            char_count = 0
+
+            for page_num in pages_to_read:
+                if char_count >= max_chars:
+                    output_lines.append(f"\n[OUTPUT LIMIT REACHED at {max_chars} chars]")
+                    break
+
+                page = pdf.pages[page_num - 1]
+                text = page.extract_text() or "[No text extracted]"
+
+                output_lines.append(f"\n{'='*60}")
+                output_lines.append(f"PAGE {page_num} of {total_pages}")
+                output_lines.append('='*60)
+
+                remaining_chars = max_chars - char_count
+                if len(text) > remaining_chars:
+                    text = text[:remaining_chars] + "\n[TRUNCATED]"
+
+                output_lines.append(text)
+                char_count += len(text) + 100
+
+            coverage = len(pages_to_read) / total_pages * 100
+            summary = [
+                f"\n{'='*60}",
+                "EXTRACTION SUMMARY",
+                '='*60,
+                f"Pages extracted: {pages_to_read}",
+                f"Coverage: {coverage:.1f}% ({len(pages_to_read)} of {total_pages} pages)",
+                f"Characters output: ~{char_count}",
+            ]
+            output_lines.extend(summary)
+
+            return "\n".join(output_lines)
     except Exception as e:
         return f"ERROR: Could not open PDF: {e}"
-
-    total_pages = len(pdf.pages)
-
-    if show_info:
-        output = [
-            f"PDF Info: {pdf_path}",
-            f"  Total pages: {total_pages}",
-            "",
-            "Suggested sampling strategy:",
-            f"  Beginning (10%): pages 1-{max(1, total_pages // 10)}",
-            f"  25% mark: pages {total_pages // 4}-{total_pages // 4 + 5}",
-            f"  50% mark: pages {total_pages // 2}-{total_pages // 2 + 5}",
-            f"  75% mark: pages {3 * total_pages // 4}-{3 * total_pages // 4 + 5}",
-            f"  End (10%): pages {total_pages - total_pages // 10}-{total_pages}",
-        ]
-        pdf.close()
-        return "\n".join(output)
-
-    # Determine which pages to extract
-    if page_ranges:
-        pages_to_read = set()
-        for start, end in page_ranges:
-            for p in range(max(1, start), min(total_pages, end) + 1):
-                pages_to_read.add(p)
-        pages_to_read = sorted(pages_to_read)
-    else:
-        pages_to_read = list(range(1, min(11, total_pages + 1)))
-
-    output_lines = []
-    char_count = 0
-
-    for page_num in pages_to_read:
-        if char_count >= max_chars:
-            output_lines.append(f"\n[OUTPUT LIMIT REACHED at {max_chars} chars]")
-            break
-
-        page = pdf.pages[page_num - 1]
-        text = page.extract_text() or "[No text extracted]"
-
-        output_lines.append(f"\n{'='*60}")
-        output_lines.append(f"PAGE {page_num} of {total_pages}")
-        output_lines.append('='*60)
-
-        remaining_chars = max_chars - char_count
-        if len(text) > remaining_chars:
-            text = text[:remaining_chars] + "\n[TRUNCATED]"
-
-        output_lines.append(text)
-        char_count += len(text) + 100
-
-    pdf.close()
-
-    coverage = len(pages_to_read) / total_pages * 100
-    summary = [
-        f"\n{'='*60}",
-        "EXTRACTION SUMMARY",
-        '='*60,
-        f"Pages extracted: {pages_to_read}",
-        f"Coverage: {coverage:.1f}% ({len(pages_to_read)} of {total_pages} pages)",
-        f"Characters output: ~{char_count}",
-    ]
-    output_lines.extend(summary)
-
-    return "\n".join(output_lines)
 
 
 def main():
