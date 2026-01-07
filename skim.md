@@ -95,7 +95,7 @@ python ~/.claude/commands/skim-scripts/url_fetch.py URL --info
 
 ```bash
 # Find headers/sections in text
-grep -n "^#\|^Chapter\|^Section\|^[0-9]\+\." document.txt | head -50
+grep -nE "^#|^Chapter|^Section|^[0-9]+\." document.txt | head -50
 
 # Or use helper
 python ~/.claude/commands/skim-scripts/doc_structure.py document.txt

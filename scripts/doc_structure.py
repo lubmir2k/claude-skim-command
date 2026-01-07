@@ -88,7 +88,7 @@ def analyze_text_structure(filepath: str, format_hint: str = 'auto') -> dict:
             for pattern, level in patterns:
                 match = re.match(pattern, line.strip())
                 if match:
-                    text = match.group(2) if level > 1 else f"{match.group(1)} {match.group(2)} {match.group(3) if len(match.groups()) > 2 else ''}"
+                    text = match.group(2) if level > 1 else f'{match.group(1)} {match.group(2)} {match.group(3)}'
                     headers.append({
                         'line': i + 1,
                         'level': level,
@@ -123,15 +123,15 @@ def analyze_text_structure(filepath: str, format_hint: str = 'auto') -> dict:
         })
 
     # Calculate sampling points
-    chunk_size = total_lines // 6
+    chunk_size = max(1, total_lines // 6)  # Ensure at least 1 to avoid invalid ranges
     sampling_points = {
-        'beginning': (1, min(total_lines // 10, 100)),
+        'beginning': (1, min(total_lines // 10, 100)) if total_lines > 10 else (1, total_lines),
         '25_percent': (total_lines // 4, min(total_lines, total_lines // 4 + 50)),
         '50_percent': (total_lines // 2, min(total_lines, total_lines // 2 + 50)),
         '75_percent': (3 * total_lines // 4, min(total_lines, 3 * total_lines // 4 + 50)),
         'end': (max(1, total_lines - total_lines // 10), total_lines),
-        'chunks': [
-            (i * chunk_size + 1, (i + 1) * chunk_size)
+        'chunks': [(1, total_lines)] if total_lines < 6 else [
+            (i * chunk_size + 1, min((i + 1) * chunk_size, total_lines))
             for i in range(6)
         ]
     }
@@ -161,14 +161,14 @@ def analyze_pdf_structure(filepath: str) -> dict:
             toc = doc.get_toc()
 
         # Calculate sampling points
-        chunk_size = total_pages // 6
+        chunk_size = max(1, total_pages // 6)  # Ensure at least 1 to avoid invalid ranges
         sampling_points = {
-            'beginning': (1, max(1, total_pages // 10)),
-            '25_percent': (total_pages // 4, total_pages // 4 + 5),
-            '50_percent': (total_pages // 2, total_pages // 2 + 5),
-            '75_percent': (3 * total_pages // 4, 3 * total_pages // 4 + 5),
+            'beginning': (1, max(1, total_pages // 10)) if total_pages > 10 else (1, total_pages),
+            '25_percent': (total_pages // 4, min(total_pages, total_pages // 4 + 5)),
+            '50_percent': (total_pages // 2, min(total_pages, total_pages // 2 + 5)),
+            '75_percent': (3 * total_pages // 4, min(total_pages, 3 * total_pages // 4 + 5)),
             'end': (max(1, total_pages - total_pages // 10), total_pages),
-            'chunks': [
+            'chunks': [(1, total_pages)] if total_pages < 6 else [
                 (i * chunk_size + 1, min((i + 1) * chunk_size, total_pages))
                 for i in range(6)
             ]
@@ -191,14 +191,14 @@ def analyze_pdf_structure(filepath: str) -> dict:
         with pdfplumber.open(filepath) as pdf:
             total_pages = len(pdf.pages)
 
-        chunk_size = total_pages // 6
+        chunk_size = max(1, total_pages // 6)  # Ensure at least 1 to avoid invalid ranges
         sampling_points = {
-            'beginning': (1, max(1, total_pages // 10)),
-            '25_percent': (total_pages // 4, total_pages // 4 + 5),
-            '50_percent': (total_pages // 2, total_pages // 2 + 5),
-            '75_percent': (3 * total_pages // 4, 3 * total_pages // 4 + 5),
+            'beginning': (1, max(1, total_pages // 10)) if total_pages > 10 else (1, total_pages),
+            '25_percent': (total_pages // 4, min(total_pages, total_pages // 4 + 5)),
+            '50_percent': (total_pages // 2, min(total_pages, total_pages // 2 + 5)),
+            '75_percent': (3 * total_pages // 4, min(total_pages, 3 * total_pages // 4 + 5)),
             'end': (max(1, total_pages - total_pages // 10), total_pages),
-            'chunks': [
+            'chunks': [(1, total_pages)] if total_pages < 6 else [
                 (i * chunk_size + 1, min((i + 1) * chunk_size, total_pages))
                 for i in range(6)
             ]

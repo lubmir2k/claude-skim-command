@@ -14,7 +14,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/lubmir2k/claude-skim-command/main/install.sh | bash
 #
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'

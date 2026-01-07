@@ -205,6 +205,7 @@ Examples:
     except ImportError:
         content, info = fetch_with_curl(args.url, args.max_chars, args.start)
     except Exception as e:
+        print(f"Warning: 'requests' failed ({e}), falling back to 'curl'.", file=sys.stderr)
         content, info = fetch_with_curl(args.url, args.max_chars, args.start)
 
     if args.info:
