@@ -70,7 +70,7 @@ if [[ "$ARGUMENTS" == http* ]]; then
     echo "SOURCE: URL"
 else
     echo "SOURCE: Local file"
-    ls -la "$ARGUMENTS"
+    ls -la -- "$ARGUMENTS"
 fi
 ```
 

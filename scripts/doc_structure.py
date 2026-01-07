@@ -126,9 +126,9 @@ def analyze_text_structure(filepath: str, format_hint: str = 'auto') -> dict:
     chunk_size = total_lines // 6
     sampling_points = {
         'beginning': (1, min(total_lines // 10, 100)),
-        '25_percent': (total_lines // 4, total_lines // 4 + 50),
-        '50_percent': (total_lines // 2, total_lines // 2 + 50),
-        '75_percent': (3 * total_lines // 4, 3 * total_lines // 4 + 50),
+        '25_percent': (total_lines // 4, min(total_lines, total_lines // 4 + 50)),
+        '50_percent': (total_lines // 2, min(total_lines, total_lines // 2 + 50)),
+        '75_percent': (3 * total_lines // 4, min(total_lines, 3 * total_lines // 4 + 50)),
         'end': (max(1, total_lines - total_lines // 10), total_lines),
         'chunks': [
             (i * chunk_size + 1, (i + 1) * chunk_size)
@@ -159,11 +159,6 @@ def analyze_pdf_structure(filepath: str) -> dict:
 
             # Get TOC if available
             toc = doc.get_toc()
-
-            # Extract text from first few pages to detect structure
-            sample_text = ""
-            for i in range(min(5, total_pages)):
-                sample_text += doc[i].get_text()
 
         # Calculate sampling points
         chunk_size = total_pages // 6

@@ -106,7 +106,7 @@ def extract_with_pymupdf(pdf_path: str, page_ranges: list[tuple[int, int]] | Non
                 char_count += len(text) + 100  # Account for headers
 
             # Add coverage summary
-            coverage = len(pages_to_read) / total_pages * 100
+            coverage = (len(pages_to_read) / total_pages * 100) if total_pages > 0 else 0.0
             summary = [
                 f"\n{'='*60}",
                 "EXTRACTION SUMMARY",
@@ -180,7 +180,7 @@ def extract_with_pdfplumber(pdf_path: str, page_ranges: list[tuple[int, int]] | 
                 output_lines.append(text)
                 char_count += len(text) + 100
 
-            coverage = len(pages_to_read) / total_pages * 100
+            coverage = (len(pages_to_read) / total_pages * 100) if total_pages > 0 else 0.0
             summary = [
                 f"\n{'='*60}",
                 "EXTRACTION SUMMARY",

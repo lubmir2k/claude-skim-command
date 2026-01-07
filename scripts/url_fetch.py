@@ -196,8 +196,6 @@ Examples:
                         help='Maximum characters to output (default: 10000)')
     parser.add_argument('--start', '-s', type=int, default=0,
                         help='Start offset in characters (default: 0)')
-    parser.add_argument('--raw', '-r', action='store_true',
-                        help='Output raw HTML without text conversion')
 
     args = parser.parse_args()
 

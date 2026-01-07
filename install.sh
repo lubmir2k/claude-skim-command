@@ -2,8 +2,15 @@
 #
 # Install script for Claude Code /skim command
 #
-# Usage:
+# Usage (Option 1 - Direct execution after clone):
 #   ./install.sh
+#
+# Usage (Option 2 - Safer remote install with inspection):
+#   curl -fsSL -o install.sh https://raw.githubusercontent.com/lubmir2k/claude-skim-command/main/install.sh
+#   less install.sh  # Review the script
+#   bash install.sh
+#
+# Usage (Option 3 - One-liner, only if you trust the source):
 #   curl -fsSL https://raw.githubusercontent.com/lubmir2k/claude-skim-command/main/install.sh | bash
 #
 
