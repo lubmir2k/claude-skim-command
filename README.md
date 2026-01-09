@@ -21,13 +21,36 @@ Instead of reading entire documents (which can exceed context limits and cost mo
 
 ## Installation
 
-### One-liner (recommended)
+### Option 1: Claude Code Plugin (Recommended)
 
 ```bash
+# Add the plugin marketplace
+/plugin marketplace add lubmir2k/claude-skim-command
+
+# Install the plugin
+/plugin install skim@lubmir2k/claude-skim-command
+```
+
+After installing the plugin, run the install script to set up helper scripts:
+```bash
+# Navigate to the plugin directory and run install
+cd ~/.claude/plugins/lubmir2k-claude-skim-command  # Path may vary; find with: find ~/.claude/plugins -name '*skim*' -type d
+./install.sh
+```
+
+### Option 2: Direct Install via Script
+
+```bash
+# Download and inspect before running (recommended)
+curl -fsSL -o install.sh https://raw.githubusercontent.com/lubmir2k/claude-skim-command/main/install.sh
+less install.sh  # Review the script
+bash install.sh
+
+# Or one-liner (only if you trust the source)
 curl -fsSL https://raw.githubusercontent.com/lubmir2k/claude-skim-command/main/install.sh | bash
 ```
 
-### Manual Installation
+### Option 3: Manual Installation
 
 1. Clone this repository:
    ```bash
@@ -43,7 +66,7 @@ curl -fsSL https://raw.githubusercontent.com/lubmir2k/claude-skim-command/main/i
 Or manually copy the files:
 ```bash
 mkdir -p ~/.claude/commands/skim-scripts
-cp skim.md ~/.claude/commands/
+cp commands/skim.md ~/.claude/commands/
 cp scripts/*.py ~/.claude/commands/skim-scripts/
 chmod +x ~/.claude/commands/skim-scripts/*.py
 ```
