@@ -34,7 +34,7 @@ Instead of reading entire documents (which can exceed context limits and cost mo
 After installing the plugin, run the install script to set up helper scripts:
 ```bash
 # Navigate to the plugin directory and run install
-cd ~/.claude/plugins/lubmir2k-claude-skim-command  # Path may vary
+cd ~/.claude/plugins/lubmir2k-claude-skim-command  # Path may vary; find with: find ~/.claude/plugins -name '*skim*' -type d
 ./install.sh
 ```
 
