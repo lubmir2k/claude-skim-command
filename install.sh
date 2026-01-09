@@ -37,10 +37,21 @@ trap cleanup EXIT
 echo -e "${GREEN}Installing Claude Code /skim command...${NC}"
 
 # Determine script directory (works for both local and piped execution)
+NEED_DOWNLOAD=false
+
 if [ -n "$BASH_SOURCE" ] && [ -f "$BASH_SOURCE" ]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    # Check if required files exist (handles standalone download case)
+    if [ ! -f "$SCRIPT_DIR/skim.md" ] && [ ! -f "$SCRIPT_DIR/commands/skim.md" ]; then
+        NEED_DOWNLOAD=true
+    fi
 else
-    # Running from curl pipe - need to download files
+    # Running from curl pipe
+    NEED_DOWNLOAD=true
+fi
+
+if [ "$NEED_DOWNLOAD" = true ]; then
+    # Need to download files
     SCRIPT_DIR=$(mktemp -d)
     TEMP_INSTALL=true
 
