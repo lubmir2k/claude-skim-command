@@ -39,7 +39,7 @@ echo -e "${GREEN}Installing Claude Code /skim command...${NC}"
 # Determine script directory (works for both local and piped execution)
 NEED_DOWNLOAD=false
 
-if [ -n "$BASH_SOURCE" ] && [ -f "$BASH_SOURCE" ]; then
+if [ -n "${BASH_SOURCE:-}" ] && [ -f "${BASH_SOURCE:-}" ]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     # Check if required files exist (handles standalone download case)
     if [ ! -d "$SCRIPT_DIR/scripts" ]; then
