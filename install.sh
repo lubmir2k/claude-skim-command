@@ -42,7 +42,7 @@ NEED_DOWNLOAD=false
 if [ -n "$BASH_SOURCE" ] && [ -f "$BASH_SOURCE" ]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     # Check if required files exist (handles standalone download case)
-    if [ ! -f "$SCRIPT_DIR/skim.md" ] && [ ! -f "$SCRIPT_DIR/commands/skim.md" ]; then
+    if [ ! -d "$SCRIPT_DIR/scripts" ]; then
         NEED_DOWNLOAD=true
     fi
 else
